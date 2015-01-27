@@ -1,0 +1,5 @@
+[package]
+
+name = "rust-bst"
+version = "0.0.1"
+authors = ["Mark Mandel <mark.mandel@gmail.com>"]
