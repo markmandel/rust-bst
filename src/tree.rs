@@ -16,6 +16,11 @@ impl<T: fmt::Display> fmt::Display for Tree<T> {
             Some(ref n) => str.push_str(format!("{}", n).as_slice()),
             };
 
+        match self.left {
+            None => {},
+            Some(ref t) => str.push_str(format!(" (L: {})", t).as_slice()),
+            }
+
         str.push_str(" ]");
 
         f.write_str(str.as_slice())
@@ -39,15 +44,20 @@ mod test {
     #[test]
     fn test_string() {
         //empty tree
-        let t: Tree<i32> = Tree{value: None, left: None, right: None, parent: None};
+        let mut t: Tree<i32> = Tree{value: None, left: None, right: None, parent: None};
         assert_eq!("[ <NONE> ]", format!("{}", t));
 
         //simple result
-        let t = single_value_fixture();
+        t = single_value_fixture();
 
         assert_eq!("[ 32 ]", format!("{}", t));
 
         //has a left value
+        let l = Tree{value: Some(15), left: None, right: None, parent: None};
+
+        t.left = Some(Box::new(l));
+
+        assert_eq!("[ 32 (L: [ 15 ]) ]", format!("{}", t));
 
         //has a right value
 
