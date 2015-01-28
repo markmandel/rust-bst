@@ -1,10 +1,11 @@
 use std::fmt;
+use std::rc;
 
 struct Tree<T> {
     value: Option<T>,
     left: Option<Box<Tree<T>>>,
     right: Option<Box<Tree<T>>>,
-    parent: Option<Box<Tree<T>>>,
+    parent: Option<rc::Rc<Tree<T>>>,
 }
 
 impl<T: fmt::Display> fmt::Display for Tree<T> {
@@ -19,7 +20,12 @@ impl<T: fmt::Display> fmt::Display for Tree<T> {
         match self.left {
             None => {},
             Some(ref t) => str.push_str(format!(" (L: {})", t).as_slice()),
-            }
+            };
+
+        match self.right {
+            None => {},
+            Some(ref t) => str.push_str(format!(" (R: {})", t).as_slice()),
+            };
 
         str.push_str(" ]");
 
@@ -30,6 +36,7 @@ impl<T: fmt::Display> fmt::Display for Tree<T> {
 #[cfg(test)]
 mod test {
     use super::{Tree};
+    use std::rc::Rc;
 
     fn single_value_fixture() -> Tree<i32> {
         Tree{value: Some(32), left: None, right: None, parent: None}
@@ -60,7 +67,10 @@ mod test {
         assert_eq!("[ 32 (L: [ 15 ]) ]", format!("{}", t));
 
         //has a right value
+        let r = Tree{value: Some(45), left: None, right: None, parent: None};
 
-        //is a bit more complicated
+        t.right = Some(Box::new(r));
+
+        assert_eq!("[ 32 (L: [ 15 ]) (R: [ 45 ]) ]", format!("{}", t));
     }
 }
