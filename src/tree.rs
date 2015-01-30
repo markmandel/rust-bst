@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 enum BST<T> {
     Leaf(T),
     // value, left ,       right
@@ -17,18 +17,14 @@ impl<T> BST<T> {
 
     fn insert(self, node: BST<T>) -> BST<T> {
         match self {
-            _ => self
-            }
-    }
-}
-
-impl<T: fmt::Display> fmt::Display for BST<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut str = String::from_str("[ ");
-
-        str.push_str(" ]");
-
-        f.write_str(str.as_slice())
+            BST::Nil => node,
+            BST::Branch(ref value, ref left, ref right) => {
+                BST::Nil
+            },
+                BST::Leaf(ref value) => {
+                BST::Nil
+            },
+        }
     }
 }
 
@@ -46,5 +42,15 @@ mod test {
         assert_eq!(BST::Leaf(32), t);
     }
 
+    #[test]
+    fn test_insertion_no_root() {
+        let t = BST::new();
 
+        let node = BST::Leaf(43);
+        let expected = node.clone();
+
+        let t = t.insert(node);
+
+        assert_eq!(t, expected)
+    }
 }
