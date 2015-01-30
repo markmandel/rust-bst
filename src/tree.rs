@@ -1,14 +1,14 @@
 use std::fmt;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-enum BST<T> {
+enum BST<T: Ord> {
     Leaf(T),
     // value, left ,       right
     Branch(T, Box<BST<T>>, Box<BST<T>>),
     Nil,
 }
 
-impl<T> BST<T> {
+impl<T: Ord> BST<T> {
 
     //new, empty BST
     fn new() -> BST<T> {
@@ -52,5 +52,18 @@ mod test {
         let t = t.insert(node);
 
         assert_eq!(t, expected)
+    }
+
+    #[test]
+    fn test_insertion_single_left_leaf() {
+
+        let t = single_value_fixture();
+        let node = BST::Leaf(15);
+
+        let expected = BST::Branch(32, Box::new(BST::Leaf(15)), Box::new(BST::Nil));
+
+        let t = t.insert(node);
+
+        assert_eq!(t, expected);
     }
 }
