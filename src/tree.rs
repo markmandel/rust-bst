@@ -25,14 +25,11 @@ impl<T: Ord + Clone> BST<T> {
             BST::Leaf(ref value) => {
                 match node {
                         BST::Nil => self.clone(),
-                        BST::Leaf(ref new_value) => {
+                        BST::Leaf(ref new_value) | BST::Branch(ref new_value, _, _) => {
                             match new_value.cmp(value) {
                                 cmp::Ordering::Less => BST::Branch(value.clone(), Box::new(node.clone()), Box::new(BST::Nil)),
                                 _ => BST::Branch(value.clone(), Box::new(BST::Nil), Box::new(node.clone())),
                                 }
-                        }
-                        BST::Branch(ref value, ref left, ref right) => {
-                           BST::Nil
                         },
                 }
             },
