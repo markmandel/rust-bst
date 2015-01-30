@@ -1,31 +1,30 @@
 use std::fmt;
-use std::rc;
 
-struct Tree<T> {
-    value: Option<T>,
-    left: Option<Box<Tree<T>>>,
-    right: Option<Box<Tree<T>>>,
-    parent: Option<rc::Rc<Tree<T>>>,
+#[derive(Debug, PartialEq, Eq)]
+enum BST<T> {
+    Leaf(T),
+    // value, left ,       right
+    Branch(T, Box<BST<T>>, Box<BST<T>>),
+    Nil,
 }
 
-impl<T: fmt::Display> fmt::Display for Tree<T> {
+impl<T> BST<T> {
+
+    //new, empty BST
+    fn new() -> BST<T> {
+        BST::Nil
+    }
+
+    fn insert(self, node: BST<T>) -> BST<T> {
+        match self {
+            _ => self
+            }
+    }
+}
+
+impl<T: fmt::Display> fmt::Display for BST<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut str = String::from_str("[ ");
-
-        match self.value {
-            None => str.push_str("<NONE>"),
-            Some(ref n) => str.push_str(format!("{}", n).as_slice()),
-            };
-
-        match self.left {
-            None => {},
-            Some(ref t) => str.push_str(format!(" (L: {})", t).as_slice()),
-            };
-
-        match self.right {
-            None => {},
-            Some(ref t) => str.push_str(format!(" (R: {})", t).as_slice()),
-            };
 
         str.push_str(" ]");
 
@@ -35,42 +34,17 @@ impl<T: fmt::Display> fmt::Display for Tree<T> {
 
 #[cfg(test)]
 mod test {
-    use super::{Tree};
-    use std::rc::Rc;
+    use super::{BST};
 
-    fn single_value_fixture() -> Tree<i32> {
-        Tree{value: Some(32), left: None, right: None, parent: None}
+    fn single_value_fixture() -> BST<i32> {
+        BST::Leaf(32)
     }
 
     #[test]
     fn test_creation() {
         let t = single_value_fixture();
-        assert_eq!(Some(32), t.value);
+        assert_eq!(BST::Leaf(32), t);
     }
 
-    #[test]
-    fn test_string() {
-        //empty tree
-        let mut t: Tree<i32> = Tree{value: None, left: None, right: None, parent: None};
-        assert_eq!("[ <NONE> ]", format!("{}", t));
 
-        //simple result
-        t = single_value_fixture();
-
-        assert_eq!("[ 32 ]", format!("{}", t));
-
-        //has a left value
-        let l = Tree{value: Some(15), left: None, right: None, parent: None};
-
-        t.left = Some(Box::new(l));
-
-        assert_eq!("[ 32 (L: [ 15 ]) ]", format!("{}", t));
-
-        //has a right value
-        let r = Tree{value: Some(45), left: None, right: None, parent: None};
-
-        t.right = Some(Box::new(r));
-
-        assert_eq!("[ 32 (L: [ 15 ]) (R: [ 45 ]) ]", format!("{}", t));
-    }
 }
