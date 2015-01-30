@@ -1,4 +1,3 @@
-use std::fmt;
 use std::cmp;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -16,21 +15,33 @@ impl<T: Ord + Clone> BST<T> {
         BST::Nil
     }
 
+    fn insert_value(&self, v: T) -> BST<T> {
+        BST::Nil
+    }
+
     fn insert(&self, node: &BST<T>) -> BST<T> {
         match self {
             &BST::Nil => node.clone(),
             &BST::Branch(ref value, ref left, ref right) => {
-                BST::Nil
+                match node {
+                    &BST::Nil => self.clone(),
+                    &BST::Leaf(ref new_value) | &BST::Branch(ref new_value, _, _) => {
+                        match new_value.cmp(value) {
+                            cmp::Ordering::Less => BST::Branch(value.clone(), Box::new(left.insert(node)), right.clone()),
+                            _ => BST::Branch(value.clone(), left.clone(), Box::new(right.insert(node))),
+                        }
+                    },
+                }
             },
             &BST::Leaf(ref value) => {
                 match node {
-                        &BST::Nil => self.clone(),
-                        &BST::Leaf(ref new_value) | &BST::Branch(ref new_value, _, _) => {
-                            match new_value.cmp(value) {
-                                cmp::Ordering::Less => BST::Branch(value.clone(), Box::new(node.clone()), Box::new(BST::Nil)),
-                                _ => BST::Branch(value.clone(), Box::new(BST::Nil), Box::new(node.clone())),
-                                }
-                        },
+                    &BST::Nil => self.clone(),
+                    &BST::Leaf(ref new_value) | &BST::Branch(ref new_value, _, _) => {
+                        match new_value.cmp(value) {
+                            cmp::Ordering::Less => BST::Branch(value.clone(), Box::new(node.clone()), Box::new(BST::Nil)),
+                            _ => BST::Branch(value.clone(), Box::new(BST::Nil), Box::new(node.clone())),
+                            }
+                    },
                 }
             },
         }
@@ -69,7 +80,20 @@ mod test {
         let t = single_value_fixture();
         let node = BST::Leaf(15);
 
-        let expected = BST::Branch(32, Box::new(BST::Leaf(15)), Box::new(BST::Nil));
+        let expected = BST::Branch(32, Box::new(node.clone()), Box::new(BST::Nil));
+
+        let t = t.insert(&node);
+
+        assert_eq!(t, expected);
+    }
+
+    #[test]
+    fn test_insertion_single_right_leaf() {
+
+        let t = single_value_fixture();
+        let node = BST::Leaf(45);
+
+        let expected = BST::Branch(32, Box::new(BST::Nil), Box::new(node.clone()));
 
         let t = t.insert(&node);
 
