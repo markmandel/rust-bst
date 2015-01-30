@@ -1,14 +1,15 @@
 use std::fmt;
+use std::cmp;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-enum BST<T: Ord> {
+enum BST<T> {
     Leaf(T),
     // value, left ,       right
     Branch(T, Box<BST<T>>, Box<BST<T>>),
     Nil,
 }
 
-impl<T: Ord> BST<T> {
+impl<T: Ord + Clone> BST<T> {
 
     //new, empty BST
     fn new() -> BST<T> {
@@ -21,8 +22,19 @@ impl<T: Ord> BST<T> {
             BST::Branch(ref value, ref left, ref right) => {
                 BST::Nil
             },
-                BST::Leaf(ref value) => {
-                BST::Nil
+            BST::Leaf(ref value) => {
+                match node {
+                        BST::Nil => self.clone(),
+                        BST::Leaf(ref new_value) => {
+                            match new_value.cmp(value) {
+                                cmp::Ordering::Less => BST::Branch(value.clone(), Box::new(node.clone()), Box::new(BST::Nil)),
+                                _ => BST::Branch(value.clone(), Box::new(BST::Nil), Box::new(node.clone())),
+                                }
+                        }
+                        BST::Branch(ref value, ref left, ref right) => {
+                           BST::Nil
+                        },
+                }
             },
         }
     }
