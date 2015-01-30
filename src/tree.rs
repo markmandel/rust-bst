@@ -8,8 +8,6 @@ pub enum BST<T> {
     Nil,
 }
 
-//TODO: implement Ord on the BST to make comparison easier
-
 impl<T: Ord + Clone> BST<T> {
 
     //new, empty BST
