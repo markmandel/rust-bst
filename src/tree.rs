@@ -16,13 +16,13 @@ impl<T: Ord + Clone> BST<T> {
         BST::Nil
     }
 
-    fn insert(self, node: BST<T>) -> BST<T> {
+    fn insert(&self, node: BST<T>) -> BST<T> {
         match self {
-            BST::Nil => node,
-            BST::Branch(ref value, ref left, ref right) => {
+            &BST::Nil => node,
+            &BST::Branch(ref value, ref left, ref right) => {
                 BST::Nil
             },
-            BST::Leaf(ref value) => {
+            &BST::Leaf(ref value) => {
                 match node {
                         BST::Nil => self.clone(),
                         BST::Leaf(ref new_value) | BST::Branch(ref new_value, _, _) => {
