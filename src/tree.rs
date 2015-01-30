@@ -1,24 +1,28 @@
 use std::cmp;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-enum BST<T> {
+pub enum BST<T> {
     Leaf(T),
     // value, left ,       right
     Branch(T, Box<BST<T>>, Box<BST<T>>),
     Nil,
 }
 
+//TODO: implement Ord on the BST to make comparison easier
+
 impl<T: Ord + Clone> BST<T> {
 
     //new, empty BST
-    fn new() -> BST<T> {
+    pub fn new() -> BST<T> {
         BST::Nil
     }
 
-    fn insert_value(&self, v: T) -> BST<T> {
-        BST::Nil
+    //convenience function to just insert a value, without having to worry about enums
+    pub fn insert_value(&self, v: T) -> BST<T> {
+        self.insert(&BST::Leaf(v))
     }
 
+    //insert a whole BST enum type
     fn insert(&self, node: &BST<T>) -> BST<T> {
         match self {
             &BST::Nil => node.clone(),
@@ -98,5 +102,19 @@ mod test {
         let t = t.insert(&node);
 
         assert_eq!(t, expected);
+    }
+
+    #[test]
+    fn test_complicated_value_bst() {
+        let t: BST<i32> = BST::new()
+            .insert_value(10)
+            .insert_value(5)
+            .insert_value(3)
+            .insert_value(15)
+            .insert_value(12)
+            .insert_value(14);
+
+        //lazy assertion, because it's easier to type
+        assert_eq!("Branch(10, Branch(5, Leaf(3), Nil), Branch(15, Branch(12, Nil, Leaf(14)), Nil))", format!("{:?}", t))
     }
 }
