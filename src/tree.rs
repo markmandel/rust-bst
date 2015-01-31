@@ -1,6 +1,7 @@
 use std::cmp;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
+//Immutable Binary Search Tree. All operations return a brand new BST.
 pub enum BST<T> {
     Leaf(T),
     // value, left ,       right
@@ -46,6 +47,22 @@ impl<T: Ord + Clone> BST<T> {
                     },
                 }
             },
+        }
+    }
+
+    //returns the BST node that matches this value.
+    //if none is found BST::Nil is returned
+    pub fn get(&self, v: &T) -> BST<T> {
+        match self {
+            &BST::Leaf(ref value) if value == v => self.clone(),
+            &BST::Branch(ref value, ref left, ref right) => {
+                match value.cmp(v) {
+                    cmp::Ordering::Equal => self.clone(),
+                    cmp::Ordering::Less => left.get(&v.clone()),
+                    cmp::Ordering::Greater => right.get(&v.clone())
+                }
+            },
+            _ => BST::Nil,
         }
     }
 }
