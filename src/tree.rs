@@ -50,7 +50,7 @@ impl<T: Ord + Clone> BST<T> {
         }
     }
 
-    //returns the value that is Ordering::Equal.
+    //returns the value that is Ordering::Equal to v.
     pub fn get(&self, v: &T) -> Option<T> {
         match self {
             &BST::Leaf(ref value) if value == v => Some(value.clone()),
@@ -62,6 +62,32 @@ impl<T: Ord + Clone> BST<T> {
                 }
             },
             _ => None,
+        }
+    }
+
+    pub fn delete(&self, v: &T) -> BST<T> {
+        match self {
+            &BST::Nil => self.clone(),
+            &BST::Leaf(ref value) => {
+                match v.cmp(value) {
+                    cmp::Ordering::Equal => BST::Nil,
+                    _ => self.clone()
+                }
+            },
+            &BST::Branch(ref value, ref left, ref right) => {
+                match v.cmp(value) {
+                    cmp::Ordering::Equal => {
+                        BST::Nil //TODO: Make work
+                        //if I only have a left value, replace me
+
+                        //if I only have a right value, replace me
+
+                        //if i have 2 values, grab the left most value of the right branch
+                    },
+                    cmp::Ordering::Less => BST::Branch(value.clone(), Box::new(left.delete(v)), right.clone()),
+                    cmp::Ordering::Greater => BST::Branch(value.clone(), left.clone(), Box::new(right.delete(v))),
+                }
+            },
         }
     }
 }
