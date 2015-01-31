@@ -50,19 +50,18 @@ impl<T: Ord + Clone> BST<T> {
         }
     }
 
-    //returns the BST node that matches this value.
-    //if none is found BST::Nil is returned
-    pub fn get(&self, v: &T) -> BST<T> {
+    //returns the value that is Ordering::Equal.
+    pub fn get(&self, v: &T) -> Option<T> {
         match self {
-            &BST::Leaf(ref value) if value == v => self.clone(),
+            &BST::Leaf(ref value) if value == v => Some(value.clone()),
             &BST::Branch(ref value, ref left, ref right) => {
-                match value.cmp(v) {
-                    cmp::Ordering::Equal => self.clone(),
+                match v.cmp(value) {
+                    cmp::Ordering::Equal => Some(value.clone()),
                     cmp::Ordering::Less => left.get(&v.clone()),
                     cmp::Ordering::Greater => right.get(&v.clone())
                 }
             },
-            _ => BST::Nil,
+            _ => None,
         }
     }
 }
@@ -131,5 +130,32 @@ mod test {
 
         //lazy assertion, because it's easier to type
         assert_eq!("Branch(10, Branch(5, Leaf(3), Nil), Branch(15, Branch(12, Nil, Leaf(14)), Nil))", format!("{:?}", t))
+    }
+
+    #[test]
+    fn test_getting_values() {
+        let t: BST<i32> = BST::new()
+        .insert_value(10)
+        .insert_value(5)
+        .insert_value(3)
+        .insert_value(15)
+        .insert_value(12)
+        .insert_value(14);
+
+        //not there
+        let result = t.get(&27);
+        assert_eq!(None, result);
+
+        let result = t.get(&10);
+        assert_eq!(Some(10), result);
+
+        let result = t.get(&5);
+        assert_eq!(Some(5), result);
+
+        let result = t.get(&12);
+        assert_eq!(Some(12), result);
+
+        let result = t.get(&14);
+        assert_eq!(Some(14), result);
     }
 }
