@@ -57,8 +57,8 @@ impl<T: Ord + Clone> BST<T> {
             &BST::Branch(ref value, ref left, ref right) => {
                 match v.cmp(value) {
                     cmp::Ordering::Equal => Some(value.clone()),
-                    cmp::Ordering::Less => left.get(&v.clone()),
-                    cmp::Ordering::Greater => right.get(&v.clone())
+                    cmp::Ordering::Less => left.get(v),
+                    cmp::Ordering::Greater => right.get(v),
                 }
             },
             _ => None,
@@ -85,7 +85,7 @@ impl<T: Ord + Clone> BST<T> {
                             *right
                         } else {
                             //if i have 2 values, grab the left most value of the right branch
-                            //TODO: Implement
+                            //TODO: Implement - Min and Max
                             BST::Nil
                         }
                     },
