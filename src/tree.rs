@@ -1,7 +1,7 @@
 use std::cmp;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
 //Immutable Binary Search Tree. All operations return a brand new BST.
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum BST<T> {
     Leaf(T),
     // value, left ,       right
@@ -65,27 +65,32 @@ impl<T: Ord + Clone> BST<T> {
         }
     }
 
-    pub fn delete(&self, v: &T) -> BST<T> {
+    pub fn delete(self, v: T) -> BST<T> {
         match self {
-            &BST::Nil => self.clone(),
-            &BST::Leaf(ref value) => {
+            BST::Nil => self,
+            BST::Leaf(ref value) => {
                 match v.cmp(value) {
                     cmp::Ordering::Equal => BST::Nil,
                     _ => self.clone()
                 }
             },
-            &BST::Branch(ref value, ref left, ref right) => {
-                match v.cmp(value) {
+            BST::Branch(value, left, right) => {
+                match v.cmp(&value) {
                     cmp::Ordering::Equal => {
-                        BST::Nil //TODO: Make work
-                        //if I only have a left value, replace me
-
-                        //if I only have a right value, replace me
-
-                        //if i have 2 values, grab the left most value of the right branch
+                        if *left != BST::Nil && *right == BST::Nil {
+                            //if I only have a left value, replace me
+                            *left
+                        } else if *left == BST::Nil && *right != BST::Nil {
+                            //if I only have a right value, replace me
+                            *right
+                        } else {
+                            //if i have 2 values, grab the left most value of the right branch
+                            //TODO: Implement
+                            BST::Nil
+                        }
                     },
-                    cmp::Ordering::Less => BST::Branch(value.clone(), Box::new(left.delete(v)), right.clone()),
-                    cmp::Ordering::Greater => BST::Branch(value.clone(), left.clone(), Box::new(right.delete(v))),
+                    cmp::Ordering::Less => BST::Branch(value, Box::new(left.delete(v)), right),
+                    cmp::Ordering::Greater => BST::Branch(value, left, Box::new(right.delete(v))),
                 }
             },
         }
