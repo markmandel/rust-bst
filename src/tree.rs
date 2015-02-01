@@ -238,18 +238,51 @@ mod test {
     }
 
     #[test]
-    fn test_delete() {
+    fn test_delete_left() {
         let t: BST<i32> = BST::new()
         .push(10)
         .push(5)
-        .push(3);
-
-        println!("Before: {:?}", t);
-
-        let t = t.delete(3);
+        .push(3)
+        .delete(3);
 
         let expected: BST<i32> = BST::new()
         .push(10).push(5);
+
+        assert_eq!(t, expected);
+
+        let t: BST<i32> = BST::new()
+        .push(10)
+        .push(5)
+        .push(3)
+        .delete(5);
+
+        let expected: BST<i32> = BST::new()
+        .push(10).push(3);
+
+        assert_eq!(t, expected);
+    }
+
+    #[test]
+    fn test_delete_right() {
+        let t: BST<i32> = BST::new()
+        .push(10)
+        .push(20)
+        .push(30)
+        .delete(30);
+
+        let expected: BST<i32> = BST::new()
+        .push(10).push(20);
+
+        assert_eq!(t, expected);
+
+        let t: BST<i32> = BST::new()
+        .push(10)
+        .push(20)
+        .push(30)
+        .delete(20);
+
+        let expected: BST<i32> = BST::new()
+        .push(10).push(30);
 
         assert_eq!(t, expected);
     }
