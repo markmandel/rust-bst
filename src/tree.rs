@@ -18,28 +18,28 @@ impl<T: Ord + Clone> BST<T> {
 
     //push a value in
     pub fn push(self, v: T) -> BST<T> {
-        self.insert(BST::Leaf(v))
+        self.push_node(&BST::Leaf(v))
     }
 
     //insert a whole BST enum type
-    fn insert(self, node: BST<T>) -> BST<T> {
+    fn push_node(self, node: &BST<T>) -> BST<T> {
         match self {
-            BST::Nil => node,
+            BST::Nil => node.clone(),
             BST::Branch(value, left, right) => {
                 match node {
-                    BST::Nil => BST::Nil,
-                    BST::Leaf(ref new_value) | BST::Branch(ref new_value, _, _) => {
+                    &BST::Nil => BST::Nil,
+                    &BST::Leaf(ref new_value) | &BST::Branch(ref new_value, _, _) => {
                         match new_value.cmp(&value) {
-                            cmp::Ordering::Less => BST::Branch(value, Box::new(left.insert(node.clone())), right),
-                            _ => BST::Branch(value, left, Box::new(right.insert(node.clone()))),
+                            cmp::Ordering::Less => BST::Branch(value, Box::new(left.push_node(node)), right),
+                            _ => BST::Branch(value, left, Box::new(right.push_node(node))),
                         }
                     },
                 }
             },
             BST::Leaf(value) => {
                 match node {
-                    BST::Nil => BST::Nil,
-                    BST::Leaf(ref new_value) | BST::Branch(ref new_value, _, _) => {
+                    &BST::Nil => BST::Nil,
+                    &BST::Leaf(ref new_value) | &BST::Branch(ref new_value, _, _) => {
                         match new_value.cmp(&value) {
                             cmp::Ordering::Less => BST::Branch(value, Box::new(node.clone()), Box::new(BST::Nil)),
                             _ => BST::Branch(value, Box::new(BST::Nil), Box::new(node.clone())),
@@ -120,7 +120,7 @@ mod test {
         let node = BST::Leaf(43);
         let expected = node.clone();
 
-        let t = t.insert(node);
+        let t = t.push_node(&node);
 
         assert_eq!(t, expected)
     }
@@ -133,7 +133,7 @@ mod test {
 
         let expected = BST::Branch(32, Box::new(node.clone()), Box::new(BST::Nil));
 
-        let t = t.insert(node);
+        let t = t.push_node(&node);
 
         assert_eq!(t, expected);
     }
@@ -146,7 +146,7 @@ mod test {
 
         let expected = BST::Branch(32, Box::new(BST::Nil), Box::new(node.clone()));
 
-        let t = t.insert(node);
+        let t = t.push_node(&node);
 
         assert_eq!(t, expected);
     }
