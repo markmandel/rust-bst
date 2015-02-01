@@ -106,14 +106,26 @@ impl<T: Ord + Clone> BST<T> {
                             *right
                         } else {
                             //if i have 2 values, grab the left most value of the right branch
-                            //TODO: Implement - integrate min
-                            BST::Nil
+                            let replacement = match right.min() {
+                                None => unreachable!(),
+                                Some(value) => value,
+                            };
+
+                            BST::Branch(replacement, left, Box::new(right.delete(value)))
                         }
                     },
-                    cmp::Ordering::Less => BST::Branch(value, Box::new(left.delete(v)), right),
-                    cmp::Ordering::Greater => BST::Branch(value, left, Box::new(right.delete(v))),
+                    cmp::Ordering::Less => BST::Branch(value, Box::new(left.delete(v)), right).downgrade(),
+                    cmp::Ordering::Greater => BST::Branch(value, left, Box::new(right.delete(v))).downgrade(),
                 }
             },
+        }
+    }
+
+    //if I'm a branch with no leaves, then return me as a leaf, otherwise I'll return myself
+    fn downgrade(self) -> BST<T> {
+        match self {
+            BST::Branch(ref value, ref left, ref right) if **left == BST::Nil && **right == BST::Nil => BST::Leaf(value.clone()),
+            _ => self
         }
     }
 }
@@ -223,5 +235,22 @@ mod test {
 
         assert_eq!(Some(3), t.min());
         assert_eq!(Some(15), t.max());
+    }
+
+    #[test]
+    fn test_delete() {
+        let t: BST<i32> = BST::new()
+        .push(10)
+        .push(5)
+        .push(3);
+
+        println!("Before: {:?}", t);
+
+        let t = t.delete(3);
+
+        let expected: BST<i32> = BST::new()
+        .push(10).push(5);
+
+        assert_eq!(t, expected);
     }
 }
