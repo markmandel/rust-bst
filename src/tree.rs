@@ -1,4 +1,5 @@
 use std::cmp;
+use std::ops::Deref;
 
 //Immutable Binary Search Tree. All operations return a brand new BST.
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -65,7 +66,25 @@ impl<T: Ord + Clone> BST<T> {
         }
     }
 
-    //TODO: Min and Max functions
+    //Gets the minimum value
+    pub fn min(&self) -> Option<T> {
+        match self {
+            &BST::Nil => None,
+            &BST::Leaf(ref value) => Some(value.clone()),
+            &BST::Branch(ref value, ref left, _) if left.deref() == &BST::Nil => Some(value.clone()),
+            &BST::Branch(_, ref left, _) => left.min(),
+        }
+    }
+
+    //Gets the minimum value
+    pub fn max(&self) -> Option<T> {
+        match self {
+                &BST::Nil => None,
+                &BST::Leaf(ref value) => Some(value.clone()),
+                &BST::Branch(ref value, _, ref right) if right.deref() == &BST::Nil => Some(value.clone()),
+                &BST::Branch(_, _, ref right) => right.max(),
+            }
+    }
 
     pub fn delete(self, v: T) -> BST<T> {
         match self {
@@ -87,7 +106,7 @@ impl<T: Ord + Clone> BST<T> {
                             *right
                         } else {
                             //if i have 2 values, grab the left most value of the right branch
-                            //TODO: Implement - Min and Max
+                            //TODO: Implement - integrate min
                             BST::Nil
                         }
                     },
@@ -190,5 +209,19 @@ mod test {
 
         let result = t.get(&14);
         assert_eq!(Some(14), result);
+    }
+
+    #[test]
+    fn test_min_max() {
+        let t: BST<i32> = BST::new()
+        .push(10)
+        .push(5)
+        .push(3)
+        .push(15)
+        .push(12)
+        .push(14);
+
+        assert_eq!(Some(3), t.min());
+        assert_eq!(Some(15), t.max());
     }
 }
