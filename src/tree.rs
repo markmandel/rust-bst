@@ -22,6 +22,7 @@ impl<T: Ord + Clone> BST<T> {
         self.push_node(&BST::Leaf(v))
     }
 
+    //TODO: Make BST<T> comparable, and see if that fixes some ownership issues.
     //insert a whole BST enum type
     fn push_node(self, node: &BST<T>) -> BST<T> {
         match self {
@@ -111,7 +112,9 @@ impl<T: Ord + Clone> BST<T> {
                                 Some(value) => value,
                             };
 
-                            BST::Branch(replacement, left, Box::new(right.delete(value)))
+                            let right = right.delete(replacement.clone());
+
+                            BST::Branch(replacement, left, Box::new(right))
                         }
                     },
                     cmp::Ordering::Less => BST::Branch(value, Box::new(left.delete(v)), right).downgrade(),
@@ -283,6 +286,67 @@ mod test {
 
         let expected: BST<i32> = BST::new()
         .push(10).push(30);
+
+        assert_eq!(t, expected);
+    }
+
+    #[test]
+    fn test_delete_branch_single_right_value() {
+        let t: BST<i32> = BST::new()
+        .push(10)
+        .push(20)
+        .push(30)
+        .push(15)
+        .push(25)
+        .push(22)
+        .push(35);
+
+        println!("\nBefore:\t\t{:?}", t);
+
+        let t = t.delete(30);
+
+        println!("After:\t\t{:?}", t);
+
+        let expected: BST<i32> = BST::new()
+        .push(10)
+        .push(20)
+        .push(15)
+        .push(35)
+        .push(25)
+        .push(22);
+
+        println!("Expected:\t{:?}", expected);
+
+
+        assert_eq!(t, expected);
+    }
+
+    #[test]
+    fn test_delete_branch_multiple_right_values() {
+        let t: BST<i32> = BST::new()
+        .push(10)
+        .push(20)
+        .push(30)
+        .push(15)
+        .push(25)
+        .push(22)
+        .push(35);
+
+        println!("\nBefore:\t\t{:?}", t);
+
+        let t = t.delete(20);
+
+        println!("After:\t\t{:?}", t);
+
+        let expected: BST<i32> = BST::new()
+        .push(10)
+        .push(22)
+        .push(15)
+        .push(30)
+        .push(25)
+        .push(35);
+
+        println!("Expected:\t{:?}", expected);
 
         assert_eq!(t, expected);
     }
