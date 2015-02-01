@@ -16,33 +16,33 @@ impl<T: Ord + Clone> BST<T> {
         BST::Nil
     }
 
-    //convenience function to just insert a value, without having to worry about enums
-    pub fn insert_value(&self, v: T) -> BST<T> {
-        self.insert(&BST::Leaf(v))
+    //push a value in
+    pub fn push(self, v: T) -> BST<T> {
+        self.insert(BST::Leaf(v))
     }
 
     //insert a whole BST enum type
-    fn insert(&self, node: &BST<T>) -> BST<T> {
+    fn insert(self, node: BST<T>) -> BST<T> {
         match self {
-            &BST::Nil => node.clone(),
-            &BST::Branch(ref value, ref left, ref right) => {
+            BST::Nil => node,
+            BST::Branch(value, left, right) => {
                 match node {
-                    &BST::Nil => self.clone(),
-                    &BST::Leaf(ref new_value) | &BST::Branch(ref new_value, _, _) => {
-                        match new_value.cmp(value) {
-                            cmp::Ordering::Less => BST::Branch(value.clone(), Box::new(left.insert(node)), right.clone()),
-                            _ => BST::Branch(value.clone(), left.clone(), Box::new(right.insert(node))),
+                    BST::Nil => BST::Nil,
+                    BST::Leaf(ref new_value) | BST::Branch(ref new_value, _, _) => {
+                        match new_value.cmp(&value) {
+                            cmp::Ordering::Less => BST::Branch(value, Box::new(left.insert(node.clone())), right),
+                            _ => BST::Branch(value, left, Box::new(right.insert(node.clone()))),
                         }
                     },
                 }
             },
-            &BST::Leaf(ref value) => {
+            BST::Leaf(value) => {
                 match node {
-                    &BST::Nil => self.clone(),
-                    &BST::Leaf(ref new_value) | &BST::Branch(ref new_value, _, _) => {
-                        match new_value.cmp(value) {
-                            cmp::Ordering::Less => BST::Branch(value.clone(), Box::new(node.clone()), Box::new(BST::Nil)),
-                            _ => BST::Branch(value.clone(), Box::new(BST::Nil), Box::new(node.clone())),
+                    BST::Nil => BST::Nil,
+                    BST::Leaf(ref new_value) | BST::Branch(ref new_value, _, _) => {
+                        match new_value.cmp(&value) {
+                            cmp::Ordering::Less => BST::Branch(value, Box::new(node.clone()), Box::new(BST::Nil)),
+                            _ => BST::Branch(value, Box::new(BST::Nil), Box::new(node.clone())),
                             }
                     },
                 }
@@ -64,6 +64,8 @@ impl<T: Ord + Clone> BST<T> {
             _ => None,
         }
     }
+
+    //TODO: Min and Max functions
 
     pub fn delete(self, v: T) -> BST<T> {
         match self {
@@ -118,7 +120,7 @@ mod test {
         let node = BST::Leaf(43);
         let expected = node.clone();
 
-        let t = t.insert(&node);
+        let t = t.insert(node);
 
         assert_eq!(t, expected)
     }
@@ -131,7 +133,7 @@ mod test {
 
         let expected = BST::Branch(32, Box::new(node.clone()), Box::new(BST::Nil));
 
-        let t = t.insert(&node);
+        let t = t.insert(node);
 
         assert_eq!(t, expected);
     }
@@ -144,7 +146,7 @@ mod test {
 
         let expected = BST::Branch(32, Box::new(BST::Nil), Box::new(node.clone()));
 
-        let t = t.insert(&node);
+        let t = t.insert(node);
 
         assert_eq!(t, expected);
     }
@@ -152,12 +154,12 @@ mod test {
     #[test]
     fn test_complicated_value_bst() {
         let t: BST<i32> = BST::new()
-            .insert_value(10)
-            .insert_value(5)
-            .insert_value(3)
-            .insert_value(15)
-            .insert_value(12)
-            .insert_value(14);
+            .push(10)
+            .push(5)
+            .push(3)
+            .push(15)
+            .push(12)
+            .push(14);
 
         //lazy assertion, because it's easier to type
         assert_eq!("Branch(10, Branch(5, Leaf(3), Nil), Branch(15, Branch(12, Nil, Leaf(14)), Nil))", format!("{:?}", t))
@@ -166,12 +168,12 @@ mod test {
     #[test]
     fn test_getting_values() {
         let t: BST<i32> = BST::new()
-        .insert_value(10)
-        .insert_value(5)
-        .insert_value(3)
-        .insert_value(15)
-        .insert_value(12)
-        .insert_value(14);
+        .push(10)
+        .push(5)
+        .push(3)
+        .push(15)
+        .push(12)
+        .push(14);
 
         //not there
         let result = t.get(&27);
