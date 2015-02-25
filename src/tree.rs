@@ -10,6 +10,32 @@ pub enum BST<T> {
     Nil,
 }
 
+impl<T: PartialOrd + Ord> cmp::PartialOrd for BST<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+            Some(self.cmp(other))
+    }
+}
+
+impl<T: Ord> cmp::Ord for BST<T> {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        match self {
+            &BST::Nil => {
+                match other {
+                    &BST::Nil => cmp::Ordering::Equal,
+                    _ => cmp::Ordering::Less
+                }
+            }
+            &BST::Leaf(ref lhs) | &BST::Branch(ref lhs, _, _) => {
+                match other {
+                    &BST::Nil => cmp::Ordering::Greater,
+                    &BST::Leaf(ref rhs) | &BST::Branch(ref rhs, _, _) => lhs.cmp(rhs)
+                }
+            }
+        }
+    }
+}
+
+
 impl<T: Ord + Clone> BST<T> {
 
     //new, empty BST
