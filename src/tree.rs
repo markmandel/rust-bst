@@ -162,6 +162,7 @@ impl<T: Ord + Clone> BST<T> {
 #[cfg(test)]
 mod test {
     use super::{BST};
+    use std::cmp;
 
     fn single_value_fixture() -> BST<i32> {
         BST::Leaf(32)
@@ -375,5 +376,42 @@ mod test {
         println!("Expected:\t{:?}", expected);
 
         assert_eq!(t, expected);
+    }
+
+    #[test]
+    fn test_bst_ord() {
+        let a: BST<i32> = BST::Nil;
+        let b: BST<i32> = BST::Nil;
+
+        assert_eq!(a.cmp(&b), cmp::Ordering::Equal);
+
+        let a: BST<i32> = BST::Leaf(3);
+
+        assert_eq!(a.cmp(&b), cmp::Ordering::Greater);
+        assert_eq!(b.cmp(&a), cmp::Ordering::Less);
+
+        let a: BST<i32> = BST::Branch(3, Box::new(BST::Nil), Box::new(BST::Nil));
+
+        assert_eq!(a.cmp(&b), cmp::Ordering::Greater);
+        assert_eq!(b.cmp(&a), cmp::Ordering::Less);
+
+        let b: BST<i32> = BST::Branch(3, Box::new(BST::Nil), Box::new(BST::Nil));
+        assert_eq!(a.cmp(&b), cmp::Ordering::Equal);
+
+        let b: BST<i32> = BST::Branch(1, Box::new(BST::Nil), Box::new(BST::Nil));
+
+        assert_eq!(a.cmp(&b), cmp::Ordering::Greater);
+        assert_eq!(b.cmp(&a), cmp::Ordering::Less);
+
+        let a: BST<i32> = BST::Leaf(3);
+
+        let b: BST<i32> = BST::Branch(3, Box::new(BST::Nil), Box::new(BST::Nil));
+        assert_eq!(a.cmp(&b), cmp::Ordering::Equal);
+
+        let b: BST<i32> = BST::Branch(1, Box::new(BST::Nil), Box::new(BST::Nil));
+
+        assert_eq!(a.cmp(&b), cmp::Ordering::Greater);
+        assert_eq!(b.cmp(&a), cmp::Ordering::Less);
+
     }
 }
