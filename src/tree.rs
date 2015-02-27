@@ -412,6 +412,41 @@ mod test {
 
         assert_eq!(a.cmp(&b), cmp::Ordering::Greater);
         assert_eq!(b.cmp(&a), cmp::Ordering::Less);
+    }
 
+    #[test]
+    fn test_partial_ord() {
+        let a: BST<i32> = BST::Nil;
+        let b: BST<i32> = BST::Nil;
+
+        assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Equal));
+
+        let a: BST<i32> = BST::Leaf(3);
+
+        assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Greater));
+        assert_eq!(b.partial_cmp(&a), Some(cmp::Ordering::Less));
+
+        let a: BST<i32> = BST::Branch(3, Box::new(BST::Nil), Box::new(BST::Nil));
+
+        assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Greater));
+        assert_eq!(b.partial_cmp(&a), Some(cmp::Ordering::Less));
+
+        let b: BST<i32> = BST::Branch(3, Box::new(BST::Nil), Box::new(BST::Nil));
+        assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Equal));
+
+        let b: BST<i32> = BST::Branch(1, Box::new(BST::Nil), Box::new(BST::Nil));
+
+        assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Greater));
+        assert_eq!(b.partial_cmp(&a), Some(cmp::Ordering::Less));
+
+        let a: BST<i32> = BST::Leaf(3);
+
+        let b: BST<i32> = BST::Branch(3, Box::new(BST::Nil), Box::new(BST::Nil));
+        assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Equal));
+
+        let b: BST<i32> = BST::Branch(1, Box::new(BST::Nil), Box::new(BST::Nil));
+
+        assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Greater));
+        assert_eq!(b.partial_cmp(&a), Some(cmp::Ordering::Less));
     }
 }
