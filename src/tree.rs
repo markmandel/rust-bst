@@ -79,18 +79,26 @@ impl<T: Ord + Clone> BST<T> {
         }
     }
 
+    //gets the Rc pointer that matches the value v
+    fn get_ptr(&self, v: &T) -> Option<rc::Rc<T>> {
+        match self {
+                &BST::Leaf(ref value) if value.deref() == v => Some(value.clone()),
+                &BST::Branch(ref value, ref left, ref right) => {
+                match v.cmp(value) {
+                        cmp::Ordering::Equal => Some(value.clone()),
+                        cmp::Ordering::Less => left.get_ptr(v),
+                        cmp::Ordering::Greater => right.get_ptr(v),
+                    }
+            },
+                _ => None,
+            }
+    }
+
     //returns the value that is Ordering::Equal to v.
     pub fn get(&self, v: &T) -> Option<T> {
-        match self {
-            &BST::Leaf(ref value) if **value == *v => Some(*value.clone()),
-            &BST::Branch(ref value, ref left, ref right) => {
-                match v.cmp(value) {
-                    cmp::Ordering::Equal => Some(*value.clone()),
-                    cmp::Ordering::Less => left.get(v),
-                    cmp::Ordering::Greater => right.get(v),
-                }
-            },
-            _ => None,
+        match self.get_ptr(v) {
+            None => None,
+            Some(rc) => Some(rc.deref().clone())
         }
     }
 
