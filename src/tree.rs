@@ -118,40 +118,9 @@ impl<T: Ord + Clone> BST<T> {
     }
 
     pub fn delete(self, v: T) -> BST<T> {
-        match self {
-            BST::Nil => self,
-            BST::Leaf(ref value) => {
-                match v.cmp(value) {
-                    cmp::Ordering::Equal => BST::Nil,
-                    _ => self.clone()
-                }
-            },
-            BST::Branch(value, left, right) => {
-                match v.cmp(&value) {
-                    cmp::Ordering::Equal => {
-                        if *left != BST::Nil && *right == BST::Nil {
-                            //if I only have a left value, replace me
-                            *left
-                        } else if *left == BST::Nil && *right != BST::Nil {
-                            //if I only have a right value, replace me
-                            *right
-                        } else {
-                            //if i have 2 values, grab the left most value of the right branch
-                            let replacement = match right.min() {
-                                None => unreachable!(),
-                                Some(value) => value,
-                            };
+        let result = delete_ptr(rc::Rc::new(self), v);
 
-                            let right = right.delete(replacement.clone());
-
-                            BST::Branch(rc::Rc::new(replacement), left, rc::Rc::new(right))
-                        }
-                    },
-                    cmp::Ordering::Less => BST::Branch(value, rc::Rc::new(left.delete(v)), right).downgrade(),
-                    cmp::Ordering::Greater => BST::Branch(value, left, rc::Rc::new(right.delete(v))).downgrade(),
-                }
-            },
-        }
+        return *result
     }
 
     //if I'm a branch with no leaves, then return me as a leaf, otherwise I'll return myself
@@ -161,6 +130,43 @@ impl<T: Ord + Clone> BST<T> {
             _ => self
         }
     }
+}
+
+fn delete_ptr<T: Ord + Clone>(tree: rc::Rc<BST<T>>, v: T) -> rc::Rc<BST<T>> {
+    match tree.deref() {
+            &BST::Nil => tree,
+            &BST::Leaf(ref value) => {
+            match v.cmp(value) {
+                    cmp::Ordering::Equal => rc::Rc::new(BST::Nil),
+                    _ => tree.clone()
+                }
+        },
+            &BST::Branch(ref value, ref left, ref right) => {
+            match v.cmp(value) {
+                    cmp::Ordering::Equal => {
+                    if left.deref() != &BST::Nil && right.deref() == &BST::Nil {
+                        //if I only have a left value, replace me
+                        left.clone()
+                    } else if left.deref() == &BST::Nil && right.deref() != &BST::Nil {
+                        //if I only have a right value, replace me
+                        right.clone()
+                    } else {
+                        //if i have 2 values, grab the left most value of the right branch
+                        let replacement = match right.min() {
+                                None => unreachable!(),
+                                Some(value) => value,
+                            };
+
+                        let right = right.delete(replacement);
+
+                        BST::Branch(rc::Rc::new(replacement), left.clone(), right.clone())
+                    }
+                },
+                    cmp::Ordering::Less => BST::Branch(value, delete_ptr(left, v), right.clone()).downgrade(),
+                    cmp::Ordering::Greater => BST::Branch(value, left.clone(), delete_ptr(right, v)).downgrade(),
+                }
+        },
+        }
 }
 
 #[cfg(test)]
