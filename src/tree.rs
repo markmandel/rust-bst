@@ -7,7 +7,7 @@ use std::rc;
 pub enum BST<T> {
     Leaf(rc::Rc<T>),
     // value, left ,       right
-    Branch(rc::Rc<T>, Box<BST<T>>, Box<BST<T>>),
+    Branch(rc::Rc<T>, rc::Rc<BST<T>>, rc::Rc<BST<T>>),
     Nil,
 }
 
@@ -45,36 +45,32 @@ impl<T: Ord + Clone> BST<T> {
     }
 
     //push a value in
-    pub fn push(self, v: T) -> BST<T> {
-        self.push_node(&BST::Leaf(rc::Rc::new(v)))
+    pub fn push(&self, v: T) -> BST<T> {
+        self.push_node(BST::Leaf(rc::Rc::new(v)))
     }
 
     //insert a whole BST enum type
-    fn push_node(self, node: &BST<T>) -> BST<T> {
+    fn push_node(&self, node: BST<T>) -> BST<T> {
         match self {
-            BST::Nil => node.clone(),
-            BST::Branch(value, left, right) => {
+            &BST::Nil => node,
+            &BST::Branch(ref value, ref left, ref right) => {
                 match node {
-                    &BST::Nil => BST::Nil,
-                    &BST::Leaf(ref new_value) | &BST::Branch(ref new_value, _, _) => {
-                        match new_value.cmp(&value) {
-                            cmp::Ordering::Less => BST::Branch(value, Box::new(left.push_node(node)), right),
-                            _ => BST::Branch(value, left, Box::new(right.push_node(node))),
+                    BST::Nil => BST::Nil,
+                    _ => match node.cmp(self) {
+                        cmp::Ordering::Less => BST::Branch(value.clone(), rc::Rc::new(left.push_node(node)), right.clone()),
+                        _ => BST::Branch(value.clone(), left.clone(), rc::Rc::new(right.push_node(node))),
+                    }
+                }
+            },
+            &BST::Leaf(ref value) => {
+                match node {
+                    BST::Nil => BST::Nil,
+                    _ => match node.cmp(self) {
+                            cmp::Ordering::Less => BST::Branch(value.clone(), rc::Rc::new(node), rc::Rc::new(BST::Nil)),
+                            _ => BST::Branch(value.clone(), rc::Rc::new(BST::Nil), rc::Rc::new(node)),
                         }
-                    },
                 }
-            },
-            BST::Leaf(value) => {
-                match node {
-                    &BST::Nil => BST::Nil,
-                    &BST::Leaf(ref new_value) | &BST::Branch(ref new_value, _, _) => {
-                        match new_value.cmp(&value) {
-                            cmp::Ordering::Less => BST::Branch(value, Box::new(node.clone()), Box::new(BST::Nil)),
-                            _ => BST::Branch(value, Box::new(BST::Nil), Box::new(node.clone())),
-                            }
-                    },
-                }
-            },
+            }
         }
     }
 
@@ -148,11 +144,11 @@ impl<T: Ord + Clone> BST<T> {
 
                             let right = right.delete(replacement.clone());
 
-                            BST::Branch(rc::Rc::new(replacement), left, Box::new(right))
+                            BST::Branch(rc::Rc::new(replacement), left, rc::Rc::new(right))
                         }
                     },
-                    cmp::Ordering::Less => BST::Branch(value, Box::new(left.delete(v)), right).downgrade(),
-                    cmp::Ordering::Greater => BST::Branch(value, left, Box::new(right.delete(v))).downgrade(),
+                    cmp::Ordering::Less => BST::Branch(value, rc::Rc::new(left.delete(v)), right).downgrade(),
+                    cmp::Ordering::Greater => BST::Branch(value, left, rc::Rc::new(right.delete(v))).downgrade(),
                 }
             },
         }
@@ -190,7 +186,7 @@ mod test {
         let node = BST::Leaf(rc::Rc::new(43));
         let expected = node.clone();
 
-        let t = t.push_node(&node);
+        let t = t.push_node(node);
 
         assert_eq!(t, expected)
     }
@@ -202,9 +198,9 @@ mod test {
         let t = single_value_fixture();
         let node = BST::Leaf(rc::Rc::new(15));
 
-        let expected = BST::Branch(rc::Rc::new(32), Box::new(node.clone()), Box::new(BST::Nil));
+        let expected = BST::Branch(rc::Rc::new(32), rc::Rc::new(node.clone()), rc::Rc::new(BST::Nil));
 
-        let t = t.push_node(&node);
+        let t = t.push_node(node);
 
         assert_eq!(t, expected);
     }
@@ -215,9 +211,9 @@ mod test {
         let t = single_value_fixture();
         let node = BST::Leaf(rc::Rc::new(45));
 
-        let expected = BST::Branch(rc::Rc::new(32), Box::new(BST::Nil), Box::new(node.clone()));
+        let expected = BST::Branch(rc::Rc::new(32), rc::Rc::new(BST::Nil), rc::Rc::new(node.clone()));
 
-        let t = t.push_node(&node);
+        let t = t.push_node(node);
 
         assert_eq!(t, expected);
     }
@@ -400,25 +396,25 @@ mod test {
         assert_eq!(a.cmp(&b), cmp::Ordering::Greater);
         assert_eq!(b.cmp(&a), cmp::Ordering::Less);
 
-        let a: BST<i32> = BST::Branch(rc::Rc::new(3), Box::new(BST::Nil), Box::new(BST::Nil));
+        let a: BST<i32> = BST::Branch(rc::Rc::new(3), rc::Rc::new(BST::Nil), rc::Rc::new(BST::Nil));
 
         assert_eq!(a.cmp(&b), cmp::Ordering::Greater);
         assert_eq!(b.cmp(&a), cmp::Ordering::Less);
 
-        let b: BST<i32> = BST::Branch(rc::Rc::new(3), Box::new(BST::Nil), Box::new(BST::Nil));
+        let b: BST<i32> = BST::Branch(rc::Rc::new(3), rc::Rc::new(BST::Nil), rc::Rc::new(BST::Nil));
         assert_eq!(a.cmp(&b), cmp::Ordering::Equal);
 
-        let b: BST<i32> = BST::Branch(rc::Rc::new(1), Box::new(BST::Nil), Box::new(BST::Nil));
+        let b: BST<i32> = BST::Branch(rc::Rc::new(1), rc::Rc::new(BST::Nil), rc::Rc::new(BST::Nil));
 
         assert_eq!(a.cmp(&b), cmp::Ordering::Greater);
         assert_eq!(b.cmp(&a), cmp::Ordering::Less);
 
         let a: BST<i32> = BST::Leaf(rc::Rc::new(3));
 
-        let b: BST<i32> = BST::Branch(rc::Rc::new(3), Box::new(BST::Nil), Box::new(BST::Nil));
+        let b: BST<i32> = BST::Branch(rc::Rc::new(3), rc::Rc::new(BST::Nil), rc::Rc::new(BST::Nil));
         assert_eq!(a.cmp(&b), cmp::Ordering::Equal);
 
-        let b: BST<i32> = BST::Branch(rc::Rc::new(1), Box::new(BST::Nil), Box::new(BST::Nil));
+        let b: BST<i32> = BST::Branch(rc::Rc::new(1), rc::Rc::new(BST::Nil), rc::Rc::new(BST::Nil));
 
         assert_eq!(a.cmp(&b), cmp::Ordering::Greater);
         assert_eq!(b.cmp(&a), cmp::Ordering::Less);
@@ -436,25 +432,25 @@ mod test {
         assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Greater));
         assert_eq!(b.partial_cmp(&a), Some(cmp::Ordering::Less));
 
-        let a: BST<i32> = BST::Branch(rc::Rc::new(3), Box::new(BST::Nil), Box::new(BST::Nil));
+        let a: BST<i32> = BST::Branch(rc::Rc::new(3), rc::Rc::new(BST::Nil), rc::Rc::new(BST::Nil));
 
         assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Greater));
         assert_eq!(b.partial_cmp(&a), Some(cmp::Ordering::Less));
 
-        let b: BST<i32> = BST::Branch(rc::Rc::new(3), Box::new(BST::Nil), Box::new(BST::Nil));
+        let b: BST<i32> = BST::Branch(rc::Rc::new(3), rc::Rc::new(BST::Nil), rc::Rc::new(BST::Nil));
         assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Equal));
 
-        let b: BST<i32> = BST::Branch(rc::Rc::new(1), Box::new(BST::Nil), Box::new(BST::Nil));
+        let b: BST<i32> = BST::Branch(rc::Rc::new(1), rc::Rc::new(BST::Nil), rc::Rc::new(BST::Nil));
 
         assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Greater));
         assert_eq!(b.partial_cmp(&a), Some(cmp::Ordering::Less));
 
         let a: BST<i32> = BST::Leaf(rc::Rc::new(3));
 
-        let b: BST<i32> = BST::Branch(rc::Rc::new(3), Box::new(BST::Nil), Box::new(BST::Nil));
+        let b: BST<i32> = BST::Branch(rc::Rc::new(3), rc::Rc::new(BST::Nil), rc::Rc::new(BST::Nil));
         assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Equal));
 
-        let b: BST<i32> = BST::Branch(rc::Rc::new(1), Box::new(BST::Nil), Box::new(BST::Nil));
+        let b: BST<i32> = BST::Branch(rc::Rc::new(1), rc::Rc::new(BST::Nil), rc::Rc::new(BST::Nil));
 
         assert_eq!(a.partial_cmp(&b), Some(cmp::Ordering::Greater));
         assert_eq!(b.partial_cmp(&a), Some(cmp::Ordering::Less));
