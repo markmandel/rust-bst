@@ -97,14 +97,18 @@ impl<T: Ord + Clone> BST<T> {
         }
     }
 
+    fn min_ptr(&self) -> Option<rc::Rc<T>> {
+        match self {
+                &BST::Nil => None,
+                &BST::Leaf(ref value) => Some(value.clone()),
+                &BST::Branch(ref value, ref left, _) if left.deref() == &BST::Nil => Some(value.clone()),
+                &BST::Branch(_, ref left, _) => left.min_ptr(),
+        }
+    }
+
     //Gets the minimum value
     pub fn min(&self) -> Option<T> {
-        match self {
-            &BST::Nil => None,
-            &BST::Leaf(ref value) => Some(value.deref().clone()),
-            &BST::Branch(ref value, ref left, _) if left.deref() == &BST::Nil => Some(value.deref().clone()),
-            &BST::Branch(_, ref left, _) => left.min(),
-        }
+        self.min_ptr().cloned()
     }
 
     //Gets the minimum value
@@ -120,7 +124,7 @@ impl<T: Ord + Clone> BST<T> {
     pub fn delete(self, v: T) -> BST<T> {
         let result = delete_ptr(rc::Rc::new(self), v);
 
-        return *result
+        return *(result.clone())
     }
 
     //if I'm a branch with no leaves, then return me as a leaf, otherwise I'll return myself
@@ -140,10 +144,10 @@ fn delete_ptr<T: Ord + Clone>(tree: rc::Rc<BST<T>>, v: T) -> rc::Rc<BST<T>> {
                     cmp::Ordering::Equal => rc::Rc::new(BST::Nil),
                     _ => tree.clone()
                 }
-        },
-            &BST::Branch(ref value, ref left, ref right) => {
-            match v.cmp(value) {
-                    cmp::Ordering::Equal => {
+            },
+            &BST::Branch(value, left, right) => {
+            match v.cmp(&value) {
+                cmp::Ordering::Equal => {
                     if left.deref() != &BST::Nil && right.deref() == &BST::Nil {
                         //if I only have a left value, replace me
                         left.clone()
@@ -152,21 +156,21 @@ fn delete_ptr<T: Ord + Clone>(tree: rc::Rc<BST<T>>, v: T) -> rc::Rc<BST<T>> {
                         right.clone()
                     } else {
                         //if i have 2 values, grab the left most value of the right branch
-                        let replacement = match right.min() {
+                        let replacement = match right.min_ptr() {
                                 None => unreachable!(),
                                 Some(value) => value,
                             };
 
-                        let right = right.delete(replacement);
+                        let right = delete_ptr(right, *replacement);
 
-                        BST::Branch(rc::Rc::new(replacement), left.clone(), right.clone())
+                        rc::Rc::new(BST::Branch(replacement, left.clone(), right.clone()))
                     }
                 },
-                    cmp::Ordering::Less => BST::Branch(value, delete_ptr(left, v), right.clone()).downgrade(),
-                    cmp::Ordering::Greater => BST::Branch(value, left.clone(), delete_ptr(right, v)).downgrade(),
-                }
+                cmp::Ordering::Less => rc::Rc::new(BST::Branch(value, delete_ptr(left, v), right.clone()).downgrade()),
+                cmp::Ordering::Greater => rc::Rc::new(BST::Branch(value, left.clone(), delete_ptr(right, v)).downgrade()),
+            }
         },
-        }
+    }
 }
 
 #[cfg(test)]
